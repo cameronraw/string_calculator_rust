@@ -26,22 +26,21 @@ impl StringCalculator {
 
         match answer {
             Some(sum) => sum,
-            None => panic!("Something has gone wrong"),
+            None => panic!("The iterator was empty"),
         }
     }
 
     fn handle_single_number(self, number_as_string: String) -> u32 {
         match number_as_string.parse::<u32>() {
             Ok(sum) => sum,
-            Err(_) => panic!("Invalid types included in string"),
+            Err(_) => panic!("Could not parse values in given string to u32"),
         }
     }
 
     fn map_string_collection_to_u32(&self, numbers: String) -> Vec<u32> {
-        numbers.split(",").map(|num_string| {
-            let parsed_u32 = self.parse_u32_from_string(num_string);
-            parsed_u32
-        }).collect()
+        numbers.split(",")
+            .map(|num_string| self.parse_u32_from_string(num_string))
+            .collect()
     }
 
     fn parse_u32_from_string(&self, number_as_string: &str) -> u32 {
