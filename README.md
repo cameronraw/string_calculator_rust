@@ -1,4 +1,4 @@
-#String Calculator Kata in Rust
+# String Calculator Kata in Rust
 
 A simple, quick kata to help solidify certain concepts when practicing Rust fundamentals.
 
