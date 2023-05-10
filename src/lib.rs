@@ -1,26 +1,23 @@
 pub struct StringCalculator;
 
 impl StringCalculator {
-
     pub fn new() -> Self {
         StringCalculator {}
     }
 
-    pub fn add(self, numbers: String) -> u32{
+    pub fn add(self, numbers: String) -> u32 {
         if numbers.eq("") {
             return 0;
         }
         match numbers.find(",") {
-            Some(_) => {
-                self.handle_multiple_numbers(numbers)
-            },
-            None => self.handle_single_number(numbers)         
+            Some(_) => self.handle_multiple_numbers(numbers),
+            None => self.handle_single_number(numbers),
         }
     }
 
     fn handle_multiple_numbers(self, numbers_as_string: String) -> u32 {
-
-        let answer = self.map_string_collection_to_u32(numbers_as_string)
+        let answer = self
+            .map_string_collection_to_u32(numbers_as_string)
             .into_iter()
             .reduce(|acc, number| acc + number);
 
@@ -38,7 +35,8 @@ impl StringCalculator {
     }
 
     fn map_string_collection_to_u32(&self, numbers: String) -> Vec<u32> {
-        numbers.split(",")
+        numbers
+            .split(",")
             .map(|num_string| self.parse_u32_from_string(num_string))
             .collect()
     }
