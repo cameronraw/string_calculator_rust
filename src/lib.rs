@@ -37,12 +37,12 @@ impl StringCalculator {
     fn map_string_collection_to_u32(&self, numbers: String) -> Vec<u32> {
         numbers
             .split(",")
-            .map(|num_string| self.parse_u32_from_string(num_string))
+            .map(|num_string| self.parse_from_string<u32>(num_string))
             .collect()
     }
 
-    fn parse_u32_from_string(&self, number_as_string: &str) -> u32 {
-        match number_as_string.parse::<u32>() {
+    fn parse_from_string<T>(&self, number_as_string: &str) -> u32 {
+        match number_as_string.parse::<T>() {
             Ok(number) => number,
             Err(_) => 0,
         }
