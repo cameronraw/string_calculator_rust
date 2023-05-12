@@ -12,7 +12,7 @@ impl StringCalculator {
         StringCalculator {}
     }
 
-    pub fn add<T: NumericSummable>(self, numbers: String) -> T {
+    pub fn add<T>(self, numbers: String) -> T where T: NumericSummable {
         if numbers.eq("") {
             return T::zero();
         }
@@ -22,7 +22,7 @@ impl StringCalculator {
         }
     }
 
-    fn handle_multiple_numbers<T: NumericSummable>(self, numbers_as_string: String) -> T {
+    fn handle_multiple_numbers<T>(self, numbers_as_string: String) -> T where T: NumericSummable {
         let answer = self
             .map_string_to_collection_of(numbers_as_string)
             .into_iter()
@@ -34,7 +34,7 @@ impl StringCalculator {
         }
     }
 
-    fn handle_single_number<T: NumericSummable>(self, number_as_string: String) -> T {
+    fn handle_single_number<T>(self, number_as_string: String) -> T where T: NumericSummable {
         match number_as_string.parse::<T>() {
             Ok(sum) => sum,
             Err(_) => panic!("Could not parse values in given string to u32"),
@@ -48,7 +48,7 @@ impl StringCalculator {
             .collect()
     }
 
-    fn parse_from_string<T: NumericSummable>(&self, number_as_string: &str) -> T {
+    fn parse_from_string<T>(&self, number_as_string: &str) -> T where T: NumericSummable {
         match number_as_string.parse::<T>() {
             Ok(number) => number,
             Err(_) => T::zero(),
