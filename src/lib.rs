@@ -80,11 +80,14 @@ impl StringCalculator {
                 }
                 let mut value_to_return = zero();
                 if !error_state {
-                    let parsed_number = self.parse_from_string::<T>(num_string);
-                    if let Some(thousand) = cast::<u32, T>(1000) {
-                        if parsed_number <= thousand {
-                            value_to_return = parsed_number;
+                    match cast::<u32, T>(1000) {
+                        Some(thousand) => {
+                            let parsed_number = self.parse_from_string::<T>(num_string);
+                            if parsed_number <= thousand {
+                                value_to_return = parsed_number;
+                            }
                         }
+                        None => panic!("Value 1000 could not be parsed into desired type"),
                     }
                 }
                 value_to_return
