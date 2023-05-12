@@ -1,13 +1,13 @@
-use num_traits::Zero;
+use num_traits::{Zero, cast, zero, NumCast};
 use std::{any::type_name, ops::Add, str::FromStr};
 
 pub struct StringCalculator {
     seperator: char,
 }
 
-pub trait NumericSummable: Add + Zero + FromStr {}
+pub trait NumericSummable: Add + Zero + FromStr + PartialOrd + NumCast {}
 
-impl<T: Add + Zero + FromStr> NumericSummable for T {}
+impl<T: Add + Zero + FromStr + PartialOrd + NumCast> NumericSummable for T {}
 
 impl StringCalculator {
     pub fn new() -> Self {
@@ -78,7 +78,16 @@ impl StringCalculator {
                     error_state = true;
                     negative_numbers.push(num_string)
                 }
-                self.parse_from_string::<T>(num_string)
+                let mut value_to_return = zero();
+                if !error_state {
+                    let parsed_number = self.parse_from_string::<T>(num_string);
+                    if let Some(thousand) = cast::<u32, T>(1000) {
+                        if parsed_number <= thousand {
+                            value_to_return = parsed_number;
+                        }
+                    }
+                }
+                value_to_return
             })
             .collect();
 
@@ -175,5 +184,12 @@ mod tests {
     fn should_not_accept_negative_numbers() {
         let string_calculator = StringCalculator::new();
         string_calculator.add::<u32>("1,-2,3,-4,-5".to_string());
+    }
+
+    #[test]
+    fn should_ignore_numbers_larger_than_1000() {
+        let string_calculator = StringCalculator::new();
+        let response: u32 = string_calculator.add("1001,35".to_string());
+        assert_eq!(response, 35);
     }
 }
