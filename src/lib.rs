@@ -171,7 +171,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "Negative numbers not allowed: -2 -4 -5")]
     fn should_not_accept_negative_numbers() {
         let string_calculator = StringCalculator::new();
         string_calculator.add::<u32>("1,-2,3,-4,-5".to_string());
