@@ -1,4 +1,4 @@
-use num_traits::{Zero, cast, zero, NumCast};
+use num_traits::{cast, zero, NumCast, Zero};
 use std::{any::type_name, ops::Add, str::FromStr};
 
 pub struct StringCalculator {
@@ -78,19 +78,7 @@ impl StringCalculator {
                     error_state = true;
                     negative_numbers.push(num_string)
                 }
-                let mut value_to_return = zero();
-                if !error_state {
-                    match cast::<u32, T>(1000) {
-                        Some(thousand) => {
-                            let parsed_number = self.parse_from_string::<T>(num_string);
-                            if parsed_number <= thousand {
-                                value_to_return = parsed_number;
-                            }
-                        }
-                        None => panic!("Value 1000 could not be parsed into desired type"),
-                    }
-                }
-                value_to_return
+                self.parse_validated_number(num_string)
             })
             .collect();
 
@@ -102,6 +90,22 @@ impl StringCalculator {
         }
 
         number_vec
+    }
+
+    fn parse_validated_number<T>(&self, num_string: &str) -> T
+    where
+        T: NumericSummable,
+    {
+        match cast::<u32, T>(1000) {
+            Some(thousand) => {
+                let parsed_number = self.parse_from_string::<T>(num_string);
+                if parsed_number <= thousand {
+                    return parsed_number;
+                }
+                zero()
+            }
+            None => panic!("Value 1000 could not be parsed into desired type"),
+        }
     }
 
     fn parse_from_string<T>(&self, number_as_string: &str) -> T
