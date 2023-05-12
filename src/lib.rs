@@ -42,20 +42,25 @@ impl StringCalculator {
 
     fn define_separator(&self, numbers_as_string: &str) -> String {
         if numbers_as_string.starts_with("//") {
-            let numbers_as_string = numbers_as_string.replace("//", "");
-            match numbers_as_string.split_once('\n') {
-                Some((sep_config, _)) => {
-                    if sep_config.starts_with('[') && sep_config.ends_with(']') {
-                        return self.extract_custom_length_separator(sep_config.to_string());
-                    }
-                    if let Some(separator) = numbers_as_string.chars().next() {
-                        return separator.to_string();
-                    }
-                }
-                None => panic!("Invalid separator config"),
-            }
+            return self.extract_separator(numbers_as_string);
         };
         String::from(",")
+    }
+
+    fn extract_separator(&self, numbers_as_string: &str) -> String {
+        let numbers_as_string = numbers_as_string.replace("//", "");
+        return match numbers_as_string.split_once('\n') {
+            Some((sep_config, _)) => {
+                if sep_config.starts_with('[') && sep_config.ends_with(']') {
+                    return self.extract_custom_length_separator(sep_config.to_string());
+                }
+                match numbers_as_string.chars().next() {
+                    Some(separator) => separator.to_string(),
+                    None => panic!("Invalid separator config"),
+                }
+            }
+            None => panic!("Invalid separator config"),
+        }
     }
 
     fn extract_custom_length_separator(&self, sep_config: String) -> String {
