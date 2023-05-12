@@ -1,7 +1,9 @@
-use std::{ops::Add, str::FromStr};
+use std::{ops::Add, str::FromStr, any::type_name};
 use num_traits::Zero;
 
-pub struct StringCalculator;
+pub struct StringCalculator {
+    seperator: char
+}
 
 pub trait NumericSummable: Add + Zero + FromStr {}
 
@@ -9,16 +11,28 @@ impl<T: Add + Zero + FromStr> NumericSummable for T {}
 
 impl StringCalculator {
     pub fn new() -> Self {
-        StringCalculator {}
+        StringCalculator {
+            seperator: ','
+        }
     }
 
-    pub fn add<T>(self, numbers: String) -> T where T: NumericSummable {
-        if numbers.eq("") {
+    pub fn add<T>(mut self, numbers_as_string: String) -> T where T: NumericSummable {
+
+        self.seperator = ','; 
+
+        if numbers_as_string.starts_with("//"){
+            self.seperator = numbers_as_string.chars().nth(2).unwrap();
+        };
+
+        let numbers_as_string = numbers_as_string.replace("\n", &self.seperator.to_string());
+
+        if numbers_as_string.eq("") {
             return T::zero();
         }
-        match numbers.find(",") {
-            Some(_) => self.handle_multiple_numbers::<T>(numbers),
-            None => self.handle_single_number::<T>(numbers),
+
+        match numbers_as_string.find(self.seperator) {
+            Some(_) => self.handle_multiple_numbers::<T>(numbers_as_string),
+            None => self.handle_single_number::<T>(numbers_as_string),
         }
     }
 
@@ -26,7 +40,7 @@ impl StringCalculator {
         let answer = self
             .map_string_to_collection_of(numbers_as_string)
             .into_iter()
-            .reduce(|acc, number| acc + number);
+            .reduce(|acc, parsed_number| acc + parsed_number);
 
         match answer {
             Some(sum) => sum,
@@ -37,13 +51,13 @@ impl StringCalculator {
     fn handle_single_number<T>(self, number_as_string: String) -> T where T: NumericSummable {
         match number_as_string.parse::<T>() {
             Ok(sum) => sum,
-            Err(_) => panic!("Could not parse values in given string to u32"),
+            Err(_) => panic!("Could not parse value in given string to {}", type_name::<T>()),
         }
     }
 
     fn map_string_to_collection_of<T>(&self, numbers: String) -> Vec<T> where T: NumericSummable {
         numbers
-            .split(",")
+            .split(self.seperator)
             .map(|num_string| self.parse_from_string::<T>(num_string))
             .collect()
     }
@@ -107,5 +121,19 @@ mod tests {
         let string_calculator = StringCalculator::new();
         let response: u32 = string_calculator.add("2,2,1".to_string());
         assert_eq!(response, 5);
+    }
+
+    #[test]
+    fn should_treat_newlines_as_seperators() {
+        let string_calculator = StringCalculator::new();
+        let response: u32 = string_calculator.add("2,2,1\n3,6,6\n3,4".to_string());
+        assert_eq!(response, 27);
+    }
+
+    #[test]
+    fn should_accept_custom_seperators() {
+        let string_calculator = StringCalculator::new();
+        let response: u32 = string_calculator.add("//;\n2;2;2\n2;2;2\n2;2".to_string());
+        assert_eq!(response, 16);
     }
 }
