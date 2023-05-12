@@ -5,12 +5,14 @@ pub struct StringCalculator;
 
 pub trait NumericSummable: Add + Zero + FromStr {}
 
+impl<T: Add + Zero + FromStr> NumericSummable for T {}
+
 impl StringCalculator {
     pub fn new() -> Self {
         StringCalculator {}
     }
 
-    pub fn add<T: Add + Zero + FromStr>(self, numbers: String) -> T {
+    pub fn add<T: NumericSummable>(self, numbers: String) -> T {
         if numbers.eq("") {
             return T::zero();
         }
@@ -20,7 +22,7 @@ impl StringCalculator {
         }
     }
 
-    fn handle_multiple_numbers<T: Add + Zero + FromStr>(self, numbers_as_string: String) -> T {
+    fn handle_multiple_numbers<T: NumericSummable>(self, numbers_as_string: String) -> T {
         let answer = self
             .map_string_to_collection_of(numbers_as_string)
             .into_iter()
@@ -32,21 +34,21 @@ impl StringCalculator {
         }
     }
 
-    fn handle_single_number<T: Add + Zero + FromStr>(self, number_as_string: String) -> T {
+    fn handle_single_number<T: NumericSummable>(self, number_as_string: String) -> T {
         match number_as_string.parse::<T>() {
             Ok(sum) => sum,
             Err(_) => panic!("Could not parse values in given string to u32"),
         }
     }
 
-    fn map_string_to_collection_of<T>(&self, numbers: String) -> Vec<T> where T: Add + Zero + FromStr {
+    fn map_string_to_collection_of<T>(&self, numbers: String) -> Vec<T> where T: NumericSummable {
         numbers
             .split(",")
             .map(|num_string| self.parse_from_string::<T>(num_string))
             .collect()
     }
 
-    fn parse_from_string<T: Add + Zero + FromStr>(&self, number_as_string: &str) -> T {
+    fn parse_from_string<T: NumericSummable>(&self, number_as_string: &str) -> T {
         match number_as_string.parse::<T>() {
             Ok(number) => number,
             Err(_) => T::zero(),
