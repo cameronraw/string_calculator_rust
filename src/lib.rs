@@ -1,8 +1,8 @@
-use std::{ops::Add, str::FromStr, any::type_name};
 use num_traits::Zero;
+use std::{any::type_name, ops::Add, str::FromStr};
 
 pub struct StringCalculator {
-    seperator: char
+    seperator: char,
 }
 
 pub trait NumericSummable: Add + Zero + FromStr {}
@@ -11,16 +11,16 @@ impl<T: Add + Zero + FromStr> NumericSummable for T {}
 
 impl StringCalculator {
     pub fn new() -> Self {
-        StringCalculator {
-            seperator: ','
-        }
+        StringCalculator { seperator: ',' }
     }
 
-    pub fn add<T>(mut self, numbers_as_string: String) -> T where T: NumericSummable {
+    pub fn add<T>(mut self, numbers_as_string: String) -> T
+    where
+        T: NumericSummable,
+    {
+        self.seperator = ',';
 
-        self.seperator = ','; 
-
-        if numbers_as_string.starts_with("//"){
+        if numbers_as_string.starts_with("//") {
             self.seperator = numbers_as_string.chars().nth(2).unwrap();
         };
 
@@ -36,9 +36,12 @@ impl StringCalculator {
         }
     }
 
-    fn handle_multiple_numbers<T>(self, numbers_as_string: String) -> T where T: NumericSummable {
+    fn handle_multiple_numbers<T>(self, numbers_as_string: String) -> T
+    where
+        T: NumericSummable,
+    {
         let answer = self
-            .map_string_to_collection_of(numbers_as_string)
+            .map_string_to_number_vec(numbers_as_string)
             .into_iter()
             .reduce(|acc, parsed_number| acc + parsed_number);
 
@@ -48,21 +51,51 @@ impl StringCalculator {
         }
     }
 
-    fn handle_single_number<T>(self, number_as_string: String) -> T where T: NumericSummable {
+    fn handle_single_number<T>(self, number_as_string: String) -> T
+    where
+        T: NumericSummable,
+    {
         match number_as_string.parse::<T>() {
             Ok(sum) => sum,
-            Err(_) => panic!("Could not parse value in given string to {}", type_name::<T>()),
+            Err(_) => panic!(
+                "Could not parse value in given string to {}",
+                type_name::<T>()
+            ),
         }
     }
 
-    fn map_string_to_collection_of<T>(&self, numbers: String) -> Vec<T> where T: NumericSummable {
-        numbers
+    fn map_string_to_number_vec<T>(&self, numbers: String) -> Vec<T>
+    where
+        T: NumericSummable,
+    {
+        let mut error_state = false;
+        let mut negative_numbers = Vec::<&str>::new();
+
+        let number_vec = numbers
             .split(self.seperator)
-            .map(|num_string| self.parse_from_string::<T>(num_string))
-            .collect()
+            .map(|num_string| {
+                if num_string.contains('-') {
+                    error_state = true;
+                    negative_numbers.push(num_string)
+                }
+                self.parse_from_string::<T>(num_string)
+            })
+            .collect();
+
+        if error_state {
+            panic!(
+                "Negative numbers not allowed: {}",
+                negative_numbers.join(" ")
+            );
+        }
+
+        number_vec
     }
 
-    fn parse_from_string<T>(&self, number_as_string: &str) -> T where T: NumericSummable {
+    fn parse_from_string<T>(&self, number_as_string: &str) -> T
+    where
+        T: NumericSummable,
+    {
         match number_as_string.parse::<T>() {
             Ok(number) => number,
             Err(_) => T::zero(),
@@ -135,5 +168,12 @@ mod tests {
         let string_calculator = StringCalculator::new();
         let response: u32 = string_calculator.add("//;\n2;2;2\n2;2;2\n2;2".to_string());
         assert_eq!(response, 16);
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_not_accept_negative_numbers() {
+        let string_calculator = StringCalculator::new();
+        string_calculator.add::<u32>("1,-2,3,-4,-5".to_string());
     }
 }
